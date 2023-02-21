@@ -17,7 +17,7 @@
 - [ ] [Create PR and make CI tests pass]()
 
 - [ ] IaC (Terraform): 
-    - [ ] S3 Bucket
+    - [x] S3 Bucket
     - [ ] VM
     - [x] Clickhouse
 - [ ] Install Airbyte on VM (Packer, Vagrant?)
@@ -28,65 +28,7 @@
 - [ ] Test assignment with Github Actions
 	- [ ] Query files on S3 with Clickhouse S3 table engine
 
-## 1. Deploy Infrastructure
-
-1. Get familiar with Managed Clickhouse Management Console
-
-    ![](./docs/clickhouse_management_console.gif)
-
-1. Install and configure `yc` CLI: [Getting started with the command-line interface by Yandex Cloud](https://cloud.yandex.com/en/docs/cli/quickstart#install)
-
-    ```bash
-    yc init
-    ```
-
-1. Populate `.env` file
-
-    `.env` is used to store secrets as environment variables.
-
-    Copy template file [.env.template](./.env.template) to `.env` file:
-    ```bash
-    cp .env.template .env
-    ```
-
-    Open file in editor and set your own values.
-
-    > ❗️ Never commit secrets to git    
-
-1. Set environment variables:
-
-    ```bash
-    export YC_TOKEN=$(yc iam create-token)
-    export YC_CLOUD_ID=$(yc config get cloud-id)
-    export YC_FOLDER_ID=$(yc config get folder-id)
-    export $(xargs <.env)
-    ```
-
-1. Deploy using Terraform
-
-    ```bash
-    terraform init
-    terraform validate
-    terraform fmt
-    terraform plan
-    terraform apply
-    ```
-
-    Store terraform output values as Environment Variables:
-
-    ```bash
-    export CLICKHOUSE_HOST=$(terraform output -raw clickhouse_host_fqdn)
-    export DBT_HOST=${CLICKHOUSE_HOST}
-    export DBT_USER=${CLICKHOUSE_USER}
-    export DBT_PASSWORD=${TF_VAR_clickhouse_password}
-    ```
-
-    [EN] Reference: [Getting started with Terraform by Yandex Cloud](https://cloud.yandex.com/en/docs/tutorials/infrastructure-management/terraform-quickstart)
-    
-    [RU] Reference: [Начало работы с Terraform by Yandex Cloud](https://cloud.yandex.ru/docs/tutorials/infrastructure-management/terraform-quickstart)
-
-
-## 2. Configure Developer Environment
+## 1. Configure Developer Environment
 
 You have got 3 options to set up:
  
@@ -123,6 +65,82 @@ alias dbt="docker-compose exec dev dbt"
 Use this [template](./profiles.yml) and enter your own credentials.
 </p>
 </details>
+
+## 2. Deploy Infrastructure
+
+1. Get familiar with Managed Clickhouse Management Console
+
+    ![](./docs/clickhouse_management_console.gif)
+
+1. Install and configure `yc` CLI: [Getting started with the command-line interface by Yandex Cloud](https://cloud.yandex.com/en/docs/cli/quickstart#install)
+
+    ```bash
+    yc init
+    ```
+
+1. Populate `.env` file
+
+    `.env` is used to store secrets as environment variables.
+
+    Copy template file [.env.template](./.env.template) to `.env` file:
+    ```bash
+    cp .env.template .env
+    ```
+
+    Open file in editor and set your own values.
+
+    > ❗️ Never commit secrets to git    
+
+1. Set environment variables:
+
+    ```bash
+    export YC_TOKEN=$(yc iam create-token)
+    export YC_CLOUD_ID=$(yc config get cloud-id)
+    export YC_FOLDER_ID=$(yc config get folder-id)
+    export TF_VAR_folder_id=$(yc config get folder-id)
+    export $(xargs <.env)
+
+    export TF_LOG_PATH=./terraform.log
+    export TF_LOG=trace
+    ```
+
+1. Deploy using Terraform
+
+    ```bash
+    terraform init
+    terraform validate
+    terraform fmt
+    terraform plan
+    terraform apply
+    ```
+
+    Spin up Airbyte:
+
+    ```bash
+    sudo mkdir airbyte && cd airbyte
+    sudo wget https://raw.githubusercontent.com/airbytehq/airbyte-platform/main/{.env,flags.yml,docker-compose.yaml}
+    sudo docker compose up -d # run the Docker container
+    ```
+
+    UI login:
+
+    ```
+    airbyte
+    password
+    ```
+
+    Store terraform output values as Environment Variables:
+
+    ```bash
+    export CLICKHOUSE_HOST=$(terraform output -raw clickhouse_host_fqdn)
+    export DBT_HOST=${CLICKHOUSE_HOST}
+    export DBT_USER=${CLICKHOUSE_USER}
+    export DBT_PASSWORD=${TF_VAR_clickhouse_password}
+    ```
+
+    [EN] Reference: [Getting started with Terraform by Yandex Cloud](https://cloud.yandex.com/en/docs/tutorials/infrastructure-management/terraform-quickstart)
+    
+    [RU] Reference: [Начало работы с Terraform by Yandex Cloud](https://cloud.yandex.ru/docs/tutorials/infrastructure-management/terraform-quickstart)
 
 ## 3. Check database connection
 

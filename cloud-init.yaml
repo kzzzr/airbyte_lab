@@ -1,0 +1,9 @@
+#cloud-config
+users:
+  - name: airbyte
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDBpBi0X6WBwPiwW6q1R+/z0UNmWvqRxAJi9TLiVUQs0AnlCYAxdG/Qlx1n69Nta6c8IOe1YAmiPZPsa9wLxBu56sVA016iddGNYaMwP8X7iKpwVCA/vapWHyDnyhnmj3oqNAJPmS+rh7mQI2/jwaoGHvgltUNK8catHijJGIXuYNkUBhcOe3TAw49lsx9QAICxrNuijrCPoGZoYrLhVFDxoPTKbnhnl5diFZ200Si8asgjaU3L6eCcLjwzbvwWpa3c7hBgvJNVvjeDfv12TA1oH89mksLnfBnpSIDJFubzpzbJjKB4BeeJeB+jiHB86X261Z45aq9cf+7YwygXbDwJR5ByLQREIQfWKauYRp71Sa39RW/k4xc/twS+E8OhvINbmhoGWugpTAyqWaXVibtmDW3zNQ06TnLwzxjMy2hG0XgPWGDmEc1lvtZKMHU77RWCfz3u+5UFx92TT+H6JnO9FVg1hi9uWutMNkd39OO4H8oMlUnBPS1f1lEE1u9gZUc=
+      
