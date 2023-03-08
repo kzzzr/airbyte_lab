@@ -18,9 +18,10 @@
 
 - [ ] IaC (Terraform): 
     - [x] S3 Bucket
-    - [ ] VM
+    - [x] VM
     - [x] Clickhouse
 - [ ] Install Airbyte on VM (Packer, Vagrant?)
+    - [ ] Will this image be working on another YC account / folder?
 - [ ] Access Airbyte through Web UI
 - [ ] Configure Pipelines
 	- [ ] Postgres to Clickhouse
@@ -30,7 +31,7 @@
 
 ## 1. Configure Developer Environment
 
-You have got 3 options to set up:
+You have 2 options to set up:
  
 <details><summary>Start with GitHub Codespaces:</summary>
 <p>
@@ -57,20 +58,8 @@ alias dbt="docker-compose exec dev dbt"
 </p>
 </details>
 
-<details><summary>Alternatively, install dbt on local machine:</summary>
-<p>
-
-[Install dbt](https://docs.getdbt.com/dbt-cli/install/overview) and [configure profile](https://docs.getdbt.com/dbt-cli/configure-your-profile) manually by yourself. By default, dbt expects the `profiles.yml` file to be located in the `~/.dbt/` directory.
-
-Use this [template](./profiles.yml) and enter your own credentials.
-</p>
-</details>
-
 ## 2. Deploy Infrastructure
 
-1. Get familiar with Managed Clickhouse Management Console
-
-    ![](./docs/clickhouse_management_console.gif)
 
 1. Install and configure `yc` CLI: [Getting started with the command-line interface by Yandex Cloud](https://cloud.yandex.com/en/docs/cli/quickstart#install)
 
@@ -98,13 +87,16 @@ Use this [template](./profiles.yml) and enter your own credentials.
     export YC_CLOUD_ID=$(yc config get cloud-id)
     export YC_FOLDER_ID=$(yc config get folder-id)
     export TF_VAR_folder_id=$(yc config get folder-id)
-    export $(xargs <.env)
+    export $(xargs < .env)
 
-    export TF_LOG_PATH=./terraform.log
-    export TF_LOG=trace
+    ## DEBUG
+    # export TF_LOG_PATH=./terraform.log
+    # export TF_LOG=trace
     ```
 
 1. Deploy using Terraform
+
+    Get familiar with Cloud Infrastructure: [main.tf](./main.tf) and [variables.tf](./variables.tf)
 
     ```bash
     terraform init
@@ -112,21 +104,6 @@ Use this [template](./profiles.yml) and enter your own credentials.
     terraform fmt
     terraform plan
     terraform apply
-    ```
-
-    Spin up Airbyte:
-
-    ```bash
-    sudo mkdir airbyte && cd airbyte
-    sudo wget https://raw.githubusercontent.com/airbytehq/airbyte-platform/main/{.env,flags.yml,docker-compose.yaml}
-    sudo docker compose up -d # run the Docker container
-    ```
-
-    UI login:
-
-    ```
-    airbyte
-    password
     ```
 
     Store terraform output values as Environment Variables:
@@ -142,29 +119,101 @@ Use this [template](./profiles.yml) and enter your own credentials.
     
     [RU] Reference: [Начало работы с Terraform by Yandex Cloud](https://cloud.yandex.ru/docs/tutorials/infrastructure-management/terraform-quickstart)
 
-## 3. Check database connection
+## 3. Deploy Airbyte
 
-Make sure dbt can connect to your target database:
+1. Get VM's public IP:
+
+    ```bash
+    terraform output -raw yandex_compute_instance_nat_ip_address
+    ```
+
+2. Lab's VM image already has Airbyte installed. However if you'd like to do it yourself: 
+
+    ```bash
+    ssh airbyte@{yandex_compute_instance_nat_ip_address}
+
+    sudo mkdir airbyte && cd airbyte
+    sudo wget https://raw.githubusercontent.com/airbytehq/airbyte-platform/main/{.env,flags.yml,docker-compose.yaml}
+    sudo docker-compose up -d
+    ```
+
+3. Access UI at {yandex_compute_instance_nat_ip_address}:8000
+
+    With credentials:
+
+    ```
+    airbyte
+    password
+    ```
+
+    ![Airbyte UI](./docs/airbyte_ui.png)
+## 4. Configure Data Pipelines
+
+1. Configure Postgres Source
+
+    Get database credentials: https://github.com/kzzzr/mybi-dbt-showcase/blob/main/dbt_project.yml#L31-L36
+
+    ❗️ Supply JDBC URL Parameter: `prepareThreshold=0`
+
+    ![](./docs/airbyte_source_postgres.png)
+
+1. Configure Clickhouse Destination
+
+    ![](./docs/airbyte_destination_clickhouse.png)
+
+1. Configure S3 Destination
+
+    Gather key pair:
+
+    ```bash
+    terraform output -raw yandex_iam_service_account_static_access_key
+    terraform output -raw yandex_iam_service_account_static_secret_key
+    ```
+
+    Make sure you choose S3 Bucket Path = `mybi`
+
+    ![](./docs/airbyte_destination_s3_1.png)
+
+    ❗️ Set Destination Connector S3 version to `0.1.16`. Otherwise you will get errors with Yandex.Cloud Object Storage.
+
+    ![](./docs/airbyte_destination_s3_3.png)
+
+1. Sync data to Clickhouse Destination
+
+    Only sync tables with `general_` prefix.
+
+    ![](./docs/airbyte_sync_clickhouse_1.png)
+    ![](./docs/airbyte_sync_clickhouse_2.png)
+    ![](./docs/airbyte_sync_clickhouse_3.png)
+
+1. Sync data to S3 Destination
+
+    Only sync tables with `general_` prefix.
+
+    ![](./docs/airbyte_sync_s3_1.png)
+    ![](./docs/airbyte_sync_s3_2.png)
+    ![](./docs/airbyte_sync_s3_3.png)
+
+## 5. Create PR and make CI tests pass
+
+Since you have synced data to S3 bucket with public access, this data now should be available as Clickhouse External Table.
+
+Set VARIABLE.
+
+Let's make sure it works:
 
 ```bash
 dbt debug
+dbt test
 ```
 
-[Configure JDBC (DBeaver) connection](https://cloud.yandex.ru/docs/managed-clickhouse/operations/connect#connection-ide):
+If it works for you, open PR and see if CI tests pass.
 
-```
-port=8443
-socket_timeout=300000
-ssl=true
-sslrootcrt=<path_to_cert>
-```
+![Github Actions check passed](./docs/github_checks_passed.png)
 
-If any errors check ENV values are present:
-```
-docker-compose exec dev env | grep DBT_
-```
+----------
 
-## 4. Deploy DWH
+
 
 1. Install dbt packages
 
@@ -188,54 +237,6 @@ docker-compose exec dev env | grep DBT_
 
 1. Describe sources in [sources.yml](./models/sources/sources.yml) files
 
-1. Build staging models:
-
-    ```bash
-    dbt build -s tag:staging
-    ```
-
-    Check model configurations: `engine`, `order_by`, `partition_by`
-
-1. Prepare wide table (Data Mart)
-
-    Join all the tables into one [f_lineorder_flat](./models/):
-
-    ```bash
-    dbt build -s f_lineorder_flat
-    ```
-
-    Pay attentions to models being tested for keys being unique, not null.
-
-## 5. Model read-optimized Data Mart
-
-Turn the following SQL into dbt model [f_orders_stats](./models/marts/f_orders_stats.sql):
-
-```sql
-SELECT
-    toYear(O_ORDERDATE) AS O_ORDERYEAR
-    , O_ORDERSTATUS
-    , O_ORDERPRIORITY
-    , count(DISTINCT O_ORDERKEY) AS num_orders
-    , count(DISTINCT C_CUSTKEY) AS num_customers
-    , sum(L_EXTENDEDPRICE * L_DISCOUNT) AS revenue
-FROM f_lineorder_flat
-WHERE 1=1
-GROUP BY
-    toYear(O_ORDERDATE)
-    , O_ORDERSTATUS
-    , O_ORDERPRIORITY
-```
-
-Make sure the tests pass:
-
-```bash
-dbt build -s f_orders_stats
-```
-
-## 6. Create PR and make CI tests pass
-
-![Github Actions check passed](./docs/github_checks_passed.png)
-
 ## Shut down your cluster
 
 ⚠️ Attention! Always delete resources after you finish your work!
@@ -245,18 +246,3 @@ dbt build -s f_orders_stats
 ```bash
 terraform destroy
 ```
-
-## Lesson plan
-
-- [ ] Deploy Clickhouse
-- [ ] Configure development environment
-- [ ] Configure dbt project (`dbt_project.yml`)
-- [ ] Configure connection (`profiles.yml`)
-- [ ] Prepare source data files (S3)
-- [ ] Configure EXTERNAL TABLES (S3)
-- [ ] Describe sources in .yml files
-- [ ] Basic dbt models and configurations
-- [ ] Code compilation + debugging
-- [ ] Prepare STAR schema
-- [ ] Querying results
-- [ ] Testing & Documenting your project

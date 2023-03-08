@@ -3,7 +3,7 @@ config:
   use_colors: True
   partial_parse: True
 
-clickhouse_starschema:
+airbyte_lab:
   outputs:
     dev:
       type: clickhouse
