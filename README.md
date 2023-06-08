@@ -1,5 +1,6 @@
 # Setting up Airbyte Data Pipelines Labs
 
+TODO
 - Build DWH powered by [Clickhouse](https://clickhouse.com/) and [dbt](https://www.getdbt.com/)
 - Deploy Infrastructure as Code with [Terraform](https://www.terraform.io/) and [Yandex.Cloud](https://cloud.yandex.com/en-ru/)
 - Instant development with [Github Codespaces](https://docs.github.com/en/codespaces)
@@ -11,8 +12,7 @@
 
 - [ ] [Fork this repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
 - [ ] [Configure Developer Environment]()
-- [ ] [Deploy Infrastructure with Terraform]()
-- [ ] [Deploy Airbyte]()
+- [ ] [Deploy Airbyte to Yandex.Cloud with Terraform]()
 - [ ] [Configure Data Pipelines]()
 - [ ] [Create PR and make CI tests pass]()
 
@@ -31,7 +31,7 @@
 
 ## 1. Configure Developer Environment
 
-You have 2 options to set up:
+You have got several options to set up:
  
 <details><summary>Start with GitHub Codespaces:</summary>
 <p>
@@ -41,27 +41,37 @@ You have 2 options to set up:
 </p>
 </details>
 
-<details><summary>Install dbt environment with Docker:</summary>
+<details><summary>Use devcontainer</summary>
 <p>
 
-Install [Docker](https://docs.docker.com/desktop/#download-and-install) and run commands:
+Install devcontainer CLI
+
+![](./docs/install_devcontainer_cli.png)
 
 ```bash
-# build & run container
-docker-compose build
-docker-compose up -d
+# build dev container
+devcontainer build .
 
-# alias docker exec command
-alias dbt="docker-compose exec dev dbt"
+# open dev container
+devcontainer open .
 ```
 
 </p>
 </details>
 
-## 2. Deploy Infrastructure
 
+## 2. Deploy Infrastructure to Yandex.Cloud with Terraform
 
-1. Install and configure `yc` CLI: [Getting started with the command-line interface by Yandex Cloud](https://cloud.yandex.com/en/docs/cli/quickstart#install)
+1. Get familiar with Yandex.Cloud web UI
+
+    We will deploy:
+    - [Yandex Compute Cloud](https://cloud.yandex.com/en/services/compute)
+    - [Yandex Object Storage](https://cloud.yandex.com/en/services/storage)
+    - [Yandex Managed Service for ClickHouse](https://cloud.yandex.com/en/services/managed-clickhouse)
+    
+    ![](./docs/clickhouse_management_console.gif)
+
+1. Configure `yc` CLI: [Getting started with the command-line interface by Yandex Cloud](https://cloud.yandex.com/en/docs/cli/quickstart#install)
 
     ```bash
     yc init
@@ -119,7 +129,7 @@ alias dbt="docker-compose exec dev dbt"
     
     [RU] Reference: [Начало работы с Terraform by Yandex Cloud](https://cloud.yandex.ru/docs/tutorials/infrastructure-management/terraform-quickstart)
 
-## 3. Deploy Airbyte
+## 3. Access Airbyte
 
 1. Get VM's public IP:
 
@@ -210,32 +220,6 @@ dbt test
 If it works for you, open PR and see if CI tests pass.
 
 ![Github Actions check passed](./docs/github_checks_passed.png)
-
-----------
-
-
-
-1. Install dbt packages
-
-    ```bash
-    dbt deps
-    ```
-
-1. Stage data sources with dbt macro
-
-    Source data will be staged as EXTERNAL TABLES (S3) using dbt macro [init_s3_sources](./macros/init_s3_sources.sql):
-
-    ```bash
-    dbt run-operation init_s3_sources
-    ```
-
-    Statements will be run separately from a list to avoid error:
-
-    ```
-    DB::Exception: Syntax error (Multi-statements are not allowed)
-    ```
-
-1. Describe sources in [sources.yml](./models/sources/sources.yml) files
 
 ## Shut down your cluster
 
