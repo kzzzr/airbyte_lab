@@ -44,3 +44,4 @@ terraform.rc
 key
 *.pub
 *.log
+.DS_Store

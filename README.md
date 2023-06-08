@@ -1,7 +1,7 @@
 # Setting up Airbyte Data Pipelines Labs
 
-- Build DWH powered by [Clickhouse](https://clickhouse.com/) and [dbt](https://www.getdbt.com/)
-- Deploy Infrastructure as Code with [Terraform](https://www.terraform.io/) and [Yandex.Cloud](https://cloud.yandex.com/en-ru/)
+- Configuring Data Pipelines with [Airbyte](https://airbyte.com/)
+- Deploying Infrastructure as Code with [Terraform](https://www.terraform.io/) and [Yandex.Cloud](https://cloud.yandex.com/en-ru/)
 - Instant development with [Github Codespaces](https://docs.github.com/en/codespaces)
 - Assignment checks with [Github Actions](https://github.com/features/actions)
 
@@ -11,27 +11,20 @@
 
 - [ ] [Fork this repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
 - [ ] [Configure Developer Environment]()
-- [ ] [Deploy Infrastructure with Terraform]()
-- [ ] [Deploy Airbyte]()
+- [ ] [Deploy Infrastructure to Yandex.Cloud with Terraform]()
+    - [ ] VM with Airbyte installed
+    - [ ] S3 Bucket
+    - [ ] Clickhouse
+- [ ] [Access Airbyte]()
 - [ ] [Configure Data Pipelines]()
-- [ ] [Create PR and make CI tests pass]()
-
-- [ ] IaC (Terraform): 
-    - [x] S3 Bucket
-    - [x] VM
-    - [x] Clickhouse
-- [ ] Install Airbyte on VM (Packer, Vagrant?)
-    - [ ] Will this image be working on another YC account / folder?
-- [ ] Access Airbyte through Web UI
-- [ ] Configure Pipelines
 	- [ ] Postgres to Clickhouse
 	- [ ] Postgres to S3
-- [ ] Test assignment with Github Actions
-	- [ ] Query files on S3 with Clickhouse S3 table engine
-
+- [ ] [Create PR and make CI tests pass]()
+    - [ ] Test assignment with Github Actions: Query files on S3 with Clickhouse S3 table engine
+    
 ## 1. Configure Developer Environment
 
-You have 2 options to set up:
+You have got several options to set up:
  
 <details><summary>Start with GitHub Codespaces:</summary>
 <p>
@@ -41,27 +34,37 @@ You have 2 options to set up:
 </p>
 </details>
 
-<details><summary>Install dbt environment with Docker:</summary>
+<details><summary>Use devcontainer</summary>
 <p>
 
-Install [Docker](https://docs.docker.com/desktop/#download-and-install) and run commands:
+Install devcontainer CLI
+
+![](./docs/install_devcontainer_cli.png)
 
 ```bash
-# build & run container
-docker-compose build
-docker-compose up -d
+# build dev container
+devcontainer build .
 
-# alias docker exec command
-alias dbt="docker-compose exec dev dbt"
+# open dev container
+devcontainer open .
 ```
 
 </p>
 </details>
 
-## 2. Deploy Infrastructure
 
+## 2. Deploy Infrastructure to Yandex.Cloud with Terraform
 
-1. Install and configure `yc` CLI: [Getting started with the command-line interface by Yandex Cloud](https://cloud.yandex.com/en/docs/cli/quickstart#install)
+1. Get familiar with Yandex.Cloud web UI
+
+    We will deploy:
+    - [Yandex Compute Cloud](https://cloud.yandex.com/en/services/compute)
+    - [Yandex Object Storage](https://cloud.yandex.com/en/services/storage)
+    - [Yandex Managed Service for ClickHouse](https://cloud.yandex.com/en/services/managed-clickhouse)
+    
+    ![](./docs/clickhouse_management_console.gif)
+
+1. Configure `yc` CLI: [Getting started with the command-line interface by Yandex Cloud](https://cloud.yandex.com/en/docs/cli/quickstart#install)
 
     ```bash
     yc init
@@ -119,7 +122,7 @@ alias dbt="docker-compose exec dev dbt"
     
     [RU] Reference: [Начало работы с Terraform by Yandex Cloud](https://cloud.yandex.ru/docs/tutorials/infrastructure-management/terraform-quickstart)
 
-## 3. Deploy Airbyte
+## 3. Access Airbyte
 
 1. Get VM's public IP:
 
@@ -127,7 +130,11 @@ alias dbt="docker-compose exec dev dbt"
     terraform output -raw yandex_compute_instance_nat_ip_address
     ```
 
-2. Lab's VM image already has Airbyte installed. However if you'd like to do it yourself: 
+2. Lab's VM image already has Airbyte installed
+
+    <details><summary>However if you'd like to do it yourself:</summary>
+    <p>
+
 
     ```bash
     ssh airbyte@{yandex_compute_instance_nat_ip_address}
@@ -136,6 +143,9 @@ alias dbt="docker-compose exec dev dbt"
     sudo wget https://raw.githubusercontent.com/airbytehq/airbyte-platform/main/{.env,flags.yml,docker-compose.yaml}
     sudo docker-compose up -d
     ```
+
+    </p>
+    </details>
 
 3. Access UI at {yandex_compute_instance_nat_ip_address}:8000
 
@@ -147,6 +157,7 @@ alias dbt="docker-compose exec dev dbt"
     ```
 
     ![Airbyte UI](./docs/airbyte_ui.png)
+
 ## 4. Configure Data Pipelines
 
 1. Configure Postgres Source
@@ -159,18 +170,26 @@ alias dbt="docker-compose exec dev dbt"
 
 1. Configure Clickhouse Destination
 
+    ```bash
+    terraform output -raw clickhouse_host_fqdn
+    ```
+
     ![](./docs/airbyte_destination_clickhouse.png)
 
 1. Configure S3 Destination
 
-    Gather key pair:
+    Gather Object Storage Bucket name and a pair of keys:
 
     ```bash
+    terraform output -raw yandex_storage_bucket_name
     terraform output -raw yandex_iam_service_account_static_access_key
     terraform output -raw yandex_iam_service_account_static_secret_key
     ```
 
-    Make sure you choose S3 Bucket Path = `mybi`
+    ❗️ Make sure you configure settings properly:
+    
+    - Set `s3_bucket_path` to `mybi`
+    - Set endpoint to `storage.yandexcloud.net`
 
     ![](./docs/airbyte_destination_s3_1.png)
 
@@ -194,7 +213,7 @@ alias dbt="docker-compose exec dev dbt"
     ![](./docs/airbyte_sync_s3_2.png)
     ![](./docs/airbyte_sync_s3_3.png)
 
-## 5. Create PR and make CI tests pass
+## 5. WIP Create PR and make CI tests pass
 
 Since you have synced data to S3 bucket with public access, this data now should be available as Clickhouse External Table.
 
@@ -210,32 +229,6 @@ dbt test
 If it works for you, open PR and see if CI tests pass.
 
 ![Github Actions check passed](./docs/github_checks_passed.png)
-
-----------
-
-
-
-1. Install dbt packages
-
-    ```bash
-    dbt deps
-    ```
-
-1. Stage data sources with dbt macro
-
-    Source data will be staged as EXTERNAL TABLES (S3) using dbt macro [init_s3_sources](./macros/init_s3_sources.sql):
-
-    ```bash
-    dbt run-operation init_s3_sources
-    ```
-
-    Statements will be run separately from a list to avoid error:
-
-    ```
-    DB::Exception: Syntax error (Multi-statements are not allowed)
-    ```
-
-1. Describe sources in [sources.yml](./models/sources/sources.yml) files
 
 ## Shut down your cluster
 
