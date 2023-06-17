@@ -1,3 +1,10 @@
+![image](https://github.com/SultankaReal/airbyte_lab/assets/77805226/991754f0-6452-4646-8b0d-46a776b29750)
+
+![image](https://github.com/SultankaReal/airbyte_lab/assets/77805226/fc36275b-4e12-4bb0-8d2d-2471539f093b)
+
+![image](https://github.com/SultankaReal/airbyte_lab/assets/77805226/16558d5c-7f54-42a6-8c37-fe4c86b137cd)
+
+
 # Setting up Airbyte Data Pipelines Labs
 
 - Configuring Data Pipelines with [Airbyte](https://airbyte.com/)
