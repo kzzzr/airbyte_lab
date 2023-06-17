@@ -61,8 +61,8 @@ resource "yandex_compute_instance" "airbyte" {
   boot_disk {
     auto_delete = true
     initialize_params {
-      image_id = "fd8linvus5t2ielkr8no" # with Airbyte installed
-      #   image_id = "fd80o2eikcn22b229tsa" # Container-optimized image
+      #image_id = "fd8fte6bebi857ortlja" # with Airbyte installed
+      image_id = "fd80o2eikcn22b229tsa" # Container-optimized image
       size = 30
       type = "network-ssd"
     }
