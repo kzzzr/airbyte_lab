@@ -33,6 +33,4 @@ clean-targets:         # directories to be removed by `dbt clean`
 # using the `{{ config(...) }}` macro.
 models:
   airbyte_lab:
-    # Config indicated by + and applies to all files under models/example/
-    example:
-      +materialized: view
+      +materialized: table
