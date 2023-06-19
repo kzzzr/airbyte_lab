@@ -16,14 +16,15 @@ RUN curl https://storage.yandexcloud.net/yandexcloud-yc/install.sh | \
     bash -s -- -a
 
 # Install Terraform
-RUN curl -sL https://hashicorp-releases.yandexcloud.net/terraform/1.4.6/terraform_1.4.6_linux_amd64.zip -o terraform.zip \
+ARG TERRAFORM_VERSION=1.4.6
+RUN curl -sL https://hashicorp-releases.yandexcloud.net/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o terraform.zip \
     && unzip terraform.zip \
     && install -o root -g root -m 0755 terraform /usr/local/bin/terraform \
     && rm -rf terraform terraform.zip
-    # Terraform configuration file ?
-    # && cat <<EOF > ~/.terraformrc \n provider_installation { network_mirror { url = \"https://terraform-mirror.yandexcloud.net/\" include = [\"registry.terraform.io/*/*\"] } direct { exclude = [\"registry.terraform.io/*/*\"] } } \n EOF
+   
+# Terraform configuration file
+# ADD terraformrc root/.terraformrc
+# RUN terraform init
 
-ADD terraformrc ~/.terraformrc
-RUN terraform init
-
+# Set default directory for dbt profiles
 ENV DBT_PROFILES_DIR=.
