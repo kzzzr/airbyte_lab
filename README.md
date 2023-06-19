@@ -282,7 +282,8 @@ dbt build
 
 2. If it works for you, open PR and trigger automatic testing with Github Actions
 
-
+- ❗️ Fill in your own bucket name to [.github/workflows/ci.yml](./.github/workflows/ci.yml#L58)
+- Submit your Pull Request
 
 ![Github Actions check passed](./docs/github_checks_passed.png)
 
