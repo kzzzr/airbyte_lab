@@ -1,0 +1,64 @@
+name: Continuous Integration Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+concurrency: 
+  group: ${{ github.ref }}
+  cancel-in-progress: true  
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}  
+
+jobs:
+
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/kzzzr/airbyte_lab:ci
+          labels: ${{ steps.meta.outputs.labels }}
+
+  ci_test:
+    name: Clickhouse CI
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    needs: [build-and-push-image]
+    services:
+      clickhouse:
+        image: clickhouse/clickhouse-server:23.3
+        ports:
+          - 9000:9000
+          - 8123:8123
+    container:
+      image: ghcr.io/kzzzr/airbyte_lab:ci
+      env:
+        S3_BUCKET_NAME: analytics-engineering-airbyte202306191912213971000000011 # Fill in your own bucket name!
+    steps:
+      - uses: actions/checkout@v3
+      - run: dbt --version
+      - run: dbt debug --target ci
+      - run: dbt deps --target ci
+      - run: dbt build --target ci
