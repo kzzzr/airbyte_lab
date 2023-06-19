@@ -9,18 +9,18 @@
 
 ⚠️ Attention! Always delete resources after you finish your work!
 
-- [ ] [Fork this repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
-- [ ] [Configure Developer Environment]()
-- [ ] [Deploy Infrastructure to Yandex.Cloud with Terraform]()
-    - [ ] VM with Airbyte installed
-    - [ ] S3 Bucket
-    - [ ] Clickhouse
-- [ ] [Access Airbyte]()
-- [ ] [Configure Data Pipelines]()
-	- [ ] Postgres to Clickhouse
-	- [ ] Postgres to S3
-- [ ] [Create PR and make CI tests pass]()
-    - [ ] Test assignment with Github Actions: Query files on S3 with Clickhouse S3 table engine
+- [V] [Fork this repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
+- [V] [Configure Developer Environment]()
+- [V] [Deploy Infrastructure to Yandex.Cloud with Terraform]()
+    - [V] VM with Airbyte installed
+    - [V] S3 Bucket
+    - [V] Clickhouse
+- [V] [Access Airbyte]()
+- [V] [Configure Data Pipelines]()
+	- [V] Postgres to Clickhouse
+	- [V] Postgres to S3
+- [V] [Create PR and make CI tests pass]()
+    - [V] Test assignment with Github Actions: Query files on S3 with Clickhouse S3 table engine
     
 ## 1. Configure Developer Environment
 
