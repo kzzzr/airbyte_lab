@@ -90,11 +90,11 @@ resource "yandex_mdb_clickhouse_cluster" "clickhouse_starschema" {
   sql_database_management = true
   sql_user_management     = true
   admin_password          = var.clickhouse_password
-  version                 = "22.8"
+  version                 = "23.3"
 
   clickhouse {
     resources {
-      resource_preset_id = "s3-c4-m16"
+      resource_preset_id = "s3-c2-m8"
       disk_type_id       = "network-ssd"
       disk_size          = 64
     }
