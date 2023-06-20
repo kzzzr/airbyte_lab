@@ -41,7 +41,7 @@
 		"ghcr.io/stuartleeks/dev-container-features/shell-history:0": {}
 	},
 
-    // "runArgs": ["--env-file",".env"]
+    "runArgs": ["--env-file",".env"]
     
 	// Uncomment the next line to run commands after the container is created.
 	// "postCreateCommand": "cat /etc/os-release",
