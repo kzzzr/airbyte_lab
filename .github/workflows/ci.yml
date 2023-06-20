@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     services:
       clickhouse:
-        image: clickhouse/clickhouse-server:23.3
+        image: clickhouse/clickhouse-server:22.8
         ports:
           - 9000:9000
-          - 8123:8123
+          - 8443:8443
     container:
       image: ghcr.io/kzzzr/airbyte_lab:ci
       env:
