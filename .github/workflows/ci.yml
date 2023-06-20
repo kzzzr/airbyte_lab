@@ -18,7 +18,7 @@ jobs:
         image: clickhouse/clickhouse-server:23.3
         ports:
           - 9000:9000
-          - 8443:8123
+          - 8443:8443
     container:
       image: ghcr.io/kzzzr/airbyte_lab:ci
       env:
