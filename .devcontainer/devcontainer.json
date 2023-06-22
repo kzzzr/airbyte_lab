@@ -41,14 +41,14 @@
 		"ghcr.io/stuartleeks/dev-container-features/shell-history:0": {}
 	},
 
-    // "runArgs": ["--env-file",".env"]
+     "runArgs": ["--env-file",".env"]
     
 	// Uncomment the next line to run commands after the container is created.
-	// "postCreateCommand": "cat /etc/os-release",
+	//"postCreateCommand": "cat /etc/os-release",
 
 	// Configure tool-specific properties.
-	// "customizations": {},
+	//"customizations": {},
 
 	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "devcontainer"
+	//"remoteUser": "devcontainer"
 }
