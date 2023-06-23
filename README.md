@@ -1,27 +1,33 @@
-# Setting up Airbyte Data Pipelines Labs
+# Setting up Airbyte Data Pipelines Lab
 
 - Configuring Data Pipelines with [Airbyte](https://airbyte.com/)
 - Deploying Infrastructure as Code with [Terraform](https://www.terraform.io/) and [Yandex.Cloud](https://cloud.yandex.com/en-ru/)
 - Instant development with [Github Codespaces](https://docs.github.com/en/codespaces)
 - Assignment checks with [Github Actions](https://github.com/features/actions)
 
-## Assignment TODO
+## Lab plan
 
-⚠️ Attention! Always delete resources after you finish your work!
+- [Fork this repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
+- [Configure Developer Environment](#1-configure-developer-environment)
+    - Start with GitHub Codespaces:
+    - Use devcontainer (locally)
+- [Deploy Infrastructure to Yandex.Cloud with Terraform](#2-deploy-infrastructure-to-yandexcloud-with-terraform)
+    - Get familiar with Yandex.Cloud web UI
+    - Configure `yc` CLI
+    - Populate `.env` file, Set environment variables
+    - Deploy using Terraform: VM with Airbyte installed, S3 Bucket, Clickhouse
+- [Access Airbyte](#3-access-airbyte)
+    - Get VM's public IP
+    - Log into web UI
+- [Configure Data Pipelines](#4-configure-data-pipelines)
+    - Configure Postgres Source
+    - Configure Clickhouse Destination, S3 Destination
+    - Sync data to Destinations
+- [Test your Pipeline with dbt](#5-test-your-pipeline-with-dbt)
+    - Run tests with your own created Clickhouse cluster
+    - Open PR and trigger automated testing with Github Actions
+- [Delete cloud resources](#delete-cloud-resources)
 
-- [ ] [Fork this repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
-- [ ] [Configure Developer Environment]()
-- [ ] [Deploy Infrastructure to Yandex.Cloud with Terraform]()
-    - [ ] VM with Airbyte installed
-    - [ ] S3 Bucket
-    - [ ] Clickhouse
-- [ ] [Access Airbyte]()
-- [ ] [Configure Data Pipelines]()
-	- [ ] Postgres to Clickhouse
-	- [ ] Postgres to S3
-- [ ] [Create PR and make CI tests pass]()
-    - [ ] Test assignment with Github Actions: Query files on S3 with Clickhouse S3 table engine
-    
 ## 1. Configure Developer Environment
 
 You have got several options to set up:
@@ -34,7 +40,7 @@ You have got several options to set up:
 </p>
 </details>
 
-<details><summary>Use devcontainer (local</summary>
+<details><summary>Use devcontainer (locally)</summary>
 <p>
 
 1. Install [Docker](https://docs.docker.com/desktop/#download-and-install) on your local machine.
@@ -186,7 +192,7 @@ If any of these commands fails printing out used software version then you are p
     </p>
     </details>
 
-3. Access UI at {yandex_compute_instance_nat_ip_address}:8000
+3. Log into web UI at {yandex_compute_instance_nat_ip_address}:8000
 
     With credentials:
 
@@ -256,7 +262,7 @@ If any of these commands fails printing out used software version then you are p
     ![](./docs/airbyte_sync_s3_2.png)
     ![](./docs/airbyte_sync_s3_3.png)
 
-## 5. Create PR and make CI tests pass
+## 5. Test your Pipeline with dbt
 
 1. First run tests with your own created Clickhouse cluster
 
@@ -280,7 +286,7 @@ dbt build
 
 ![](./docs/dbt_devenv.gif)
 
-2. If it works for you, open PR and trigger automatic testing with Github Actions
+2. If it works for you, open PR and trigger automated testing with Github Actions
 
 - ❗️ Fill in your own bucket name to [.github/workflows/ci.yml](./.github/workflows/ci.yml#L58)
 - Submit your Pull Request
@@ -289,7 +295,7 @@ dbt build
 
 ## Delete cloud resources
 
-⚠️ Attention! Always delete resources after you finish your work!
+⚠️ Attention! Always delete cloud resources after you finished!
 
 ![image](https://user-images.githubusercontent.com/34193409/214896888-3c6db293-8f1c-4931-8277-b2e4137f30a3.png)
 
