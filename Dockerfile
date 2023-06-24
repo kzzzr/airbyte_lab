@@ -1,6 +1,8 @@
 ARG DBT_VERSION=1.0.0
 FROM fishtownanalytics/dbt:${DBT_VERSION}
 
+COPY terraformrc root/.terraformrc
+
 # Install utils
 RUN apt -y update \
     && apt -y upgrade \
