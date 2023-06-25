@@ -10,8 +10,8 @@ airbyte_lab:
       schema: default
       host: "{{ env_var('DBT_HOST') }}"
       port: 8443
-      user: "{{ env_var('DBT_USER') }}"
-      password: "{{ env_var('DBT_PASSWORD') }}"
+      user: "admin"
+      password: "clickhouse"
       secure: True
       verify: False
     ci:
