@@ -22,7 +22,7 @@ jobs:
     container:
       image: ghcr.io/kzzzr/airbyte_lab:ci
       env:
-        S3_BUCKET_NAME: analytics-engineering-airbyte20230625092056343400000001 # Fill in your own bucket name!
+        S3_BUCKET_NAME: analytics-engineering-airbyte20230626171013360500000001 # Fill in your own bucket name!
     steps:
       - uses: actions/checkout@v3
       - run: dbt --version
