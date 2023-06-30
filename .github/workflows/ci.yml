@@ -21,7 +21,7 @@ jobs:
           - 8123:8123
     container:
       image: ghcr.io/kzzzr/airbyte_lab:ci
-      env:
+      env:      
         S3_BUCKET_NAME: analytics-engineering-airbyte20230627172829368600000001 # Fill in your own bucket name!
     steps:
       - uses: actions/checkout@v3
