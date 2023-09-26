@@ -8,10 +8,10 @@ airbyte_lab:
     dev:
       type: clickhouse
       schema: default
-      host: "{{ env_var('DBT_HOST') }}"
+      host: rc1b-vi8fj93aamh2690k.mdb.yandexcloud.net
       port: 8443
-      user: "{{ env_var('DBT_USER') }}"
-      password: "{{ env_var('DBT_PASSWORD') }}"
+      user: admin
+      password: yivanovskaya
       secure: True
       verify: False
     ci:
