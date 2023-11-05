@@ -1,0 +1,48 @@
+version: 2
+
+models:
+
+    - name: general_traffic
+      columns:
+        - name: id
+          tests:
+            - unique
+            - not_null
+        - name: traffic_hash
+          tests:
+            - unique
+            - not_null
+        - name: grouping
+          tests:
+            - accepted_values:
+                values: ['Direct', 'Organic Search', 'Paid Search', 'Referral', 'Social', '(Other)', 'Email', 'Display', 'Social Network']
+
+    - name: general_sites
+      columns:
+        - name: id
+          tests:
+            - unique
+            - not_null
+
+    - name: general_costs_facts
+      columns:
+        - name: sites_id
+          tests:
+            - not_null
+            - relationships:
+                to: ref('general_sites')
+                field: id
+        - name: traffic_id
+          tests:
+            - not_null
+            - relationships:
+                to: ref('general_traffic')
+                field: id
+        - name: clicks
+          tests:
+            - not_null
+        - name: cost
+          tests:
+            - not_null
+            
+

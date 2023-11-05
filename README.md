@@ -1,27 +1,33 @@
-# Setting up Airbyte Data Pipelines Labs
+# Setting up Airbyte Data Pipelines Lab
 
 - Configuring Data Pipelines with [Airbyte](https://airbyte.com/)
 - Deploying Infrastructure as Code with [Terraform](https://www.terraform.io/) and [Yandex.Cloud](https://cloud.yandex.com/en-ru/)
 - Instant development with [Github Codespaces](https://docs.github.com/en/codespaces)
 - Assignment checks with [Github Actions](https://github.com/features/actions)
 
-## Assignment TODO
+## Lab plan
 
-⚠️ Attention! Always delete resources after you finish your work!
+- [Fork this repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
+- [Configure Developer Environment](#1-configure-developer-environment)
+    - Start with GitHub Codespaces:
+    - Use devcontainer (locally)
+- [Deploy Infrastructure to Yandex.Cloud with Terraform](#2-deploy-infrastructure-to-yandexcloud-with-terraform)
+    - Get familiar with Yandex.Cloud web UI
+    - Configure `yc` CLI
+    - Populate `.env` file, Set environment variables
+    - Deploy using Terraform: VM with Airbyte installed, S3 Bucket, Clickhouse
+- [Access Airbyte](#3-access-airbyte)
+    - Get VM's public IP
+    - Log into web UI
+- [Configure Data Pipelines](#4-configure-data-pipelines)
+    - Configure Postgres Source
+    - Configure Clickhouse Destination, S3 Destination
+    - Sync data to Destinations
+- [Test your Pipeline with dbt](#5-test-your-pipeline-with-dbt)
+    - Run tests with your own created Clickhouse cluster
+    - Open PR and trigger automated testing with Github Actions
+- [Delete cloud resources](#delete-cloud-resources)
 
-- [ ] [Fork this repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
-- [ ] [Configure Developer Environment]()
-- [ ] [Deploy Infrastructure to Yandex.Cloud with Terraform]()
-    - [ ] VM with Airbyte installed
-    - [ ] S3 Bucket
-    - [ ] Clickhouse
-- [ ] [Access Airbyte]()
-- [ ] [Configure Data Pipelines]()
-	- [ ] Postgres to Clickhouse
-	- [ ] Postgres to S3
-- [ ] [Create PR and make CI tests pass]()
-    - [ ] Test assignment with Github Actions: Query files on S3 with Clickhouse S3 table engine
-    
 ## 1. Configure Developer Environment
 
 You have got several options to set up:
@@ -34,24 +40,41 @@ You have got several options to set up:
 </p>
 </details>
 
-<details><summary>Use devcontainer</summary>
+<details><summary>Use devcontainer (locally)</summary>
 <p>
 
-Install devcontainer CLI
+1. Install [Docker](https://docs.docker.com/desktop/#download-and-install) on your local machine.
 
-![](./docs/install_devcontainer_cli.png)
+1. Install devcontainer CLI:
 
-```bash
-# build dev container
-devcontainer build .
+    Open command palette (CMD + SHIFT+ P) type *Install devcontainer CLI*
 
-# open dev container
-devcontainer open .
-```
+    ![](./docs/install_devcontainer_cli.png)
+
+1. Next build and open dev container:
+
+    ```bash
+    # build dev container
+    devcontainer build .
+
+    # open dev container
+    devcontainer open .
+    ```
 
 </p>
 </details>
 
+Verify you are in a development container by running commands:
+
+```bash
+terraform -v
+
+yc --version
+
+dbt --version
+```
+
+If any of these commands fails printing out used software version then you are probably running it on your local machine not in a dev container!
 
 ## 2. Deploy Infrastructure to Yandex.Cloud with Terraform
 
@@ -99,6 +122,12 @@ devcontainer open .
 
 1. Deploy using Terraform
 
+    Configure YC Terraform provider:
+    
+    ```bash
+    cp terraformrc ~/.terraformrc
+    ```
+
     Get familiar with Cloud Infrastructure: [main.tf](./main.tf) and [variables.tf](./variables.tf)
 
     ```bash
@@ -132,9 +161,25 @@ devcontainer open .
 
 2. Lab's VM image already has Airbyte installed
 
-    <details><summary>However if you'd like to do it yourself:</summary>
+    <details><summary>I have prepared VM image and made it publicly available:</summary>
     <p>
 
+    https://cloud.yandex.com/en-ru/docs/compute/concepts/image#public
+
+    ```bash
+    yc resource-manager cloud add-access-binding y-cloud \
+        --role compute.images.user \
+        --subject system:allAuthenticatedUsers
+    ```
+
+    TODO: define VM image with **Packer** so that everyone is able to build his own image
+
+    </p>
+    </details>
+
+
+    <details><summary>However if you'd like to do it yourself:</summary>
+    <p>
 
     ```bash
     ssh airbyte@{yandex_compute_instance_nat_ip_address}
@@ -147,7 +192,7 @@ devcontainer open .
     </p>
     </details>
 
-3. Access UI at {yandex_compute_instance_nat_ip_address}:8000
+3. Log into web UI at {yandex_compute_instance_nat_ip_address}:8000
 
     With credentials:
 
@@ -162,7 +207,7 @@ devcontainer open .
 
 1. Configure Postgres Source
 
-    Get database credentials: https://github.com/kzzzr/mybi-dbt-showcase/blob/main/dbt_project.yml#L31-L36
+    Get database credentials: https://github.com/kzzzr/mybi-dbt-showcase/blob/main/dbt_project.yml#L34-L40
 
     ❗️ Supply JDBC URL Parameter: `prepareThreshold=0`
 
@@ -181,9 +226,13 @@ devcontainer open .
     Gather Object Storage Bucket name and a pair of keys:
 
     ```bash
-    terraform output -raw yandex_storage_bucket_name
-    terraform output -raw yandex_iam_service_account_static_access_key
-    terraform output -raw yandex_iam_service_account_static_secret_key
+    export S3_BUCKET_NAME=$(terraform output -raw yandex_storage_bucket_name)
+    export S3_ACCESS_KEY=$(terraform output -raw yandex_iam_service_account_static_access_key)
+    export S3_SECRET_KEY=$(terraform output -raw yandex_iam_service_account_static_secret_key)
+
+    echo $S3_BUCKET_NAME
+    echo $S3_ACCESS_KEY
+    echo $S3_SECRET_KEY
     ```
 
     ❗️ Make sure you configure settings properly:
@@ -213,26 +262,40 @@ devcontainer open .
     ![](./docs/airbyte_sync_s3_2.png)
     ![](./docs/airbyte_sync_s3_3.png)
 
-## 5. WIP Create PR and make CI tests pass
+## 5. Test your Pipeline with dbt
 
-Since you have synced data to S3 bucket with public access, this data now should be available as Clickhouse External Table.
+1. First run tests with your own created Clickhouse cluster
 
-Set VARIABLE.
+Since you have synced data to S3 bucket with public access, this data now should be available with Clickhouse [s3 table engine](https://clickhouse.com/docs/en/engines/table-engines/integrations/s3)
 
-Let's make sure it works:
+Export variables to allow connection to Clickhouse in your Cloud:
+
+```bash
+export CLICKHOUSE_HOST=$(terraform output -raw clickhouse_host_fqdn)
+export DBT_HOST=${CLICKHOUSE_HOST}
+export DBT_USER=${CLICKHOUSE_USER}
+export DBT_PASSWORD=${TF_VAR_clickhouse_password}
+```
+
+Make sure it works:
 
 ```bash
 dbt debug
-dbt test
+dbt build
 ```
 
-If it works for you, open PR and see if CI tests pass.
+![](./docs/dbt_devenv.gif)
+
+2. If it works for you, open PR and trigger automated testing with Github Actions
+
+- ❗️ Fill in your own bucket name to [.github/workflows/ci.yml](./.github/workflows/ci.yml#L58)
+- Submit your Pull Request
 
 ![Github Actions check passed](./docs/github_checks_passed.png)
 
-## Shut down your cluster
+## Delete cloud resources
 
-⚠️ Attention! Always delete resources after you finish your work!
+⚠️ Attention! Always delete cloud resources after you finished!
 
 ![image](https://user-images.githubusercontent.com/34193409/214896888-3c6db293-8f1c-4931-8277-b2e4137f30a3.png)
 
